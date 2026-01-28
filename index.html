@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Intwari AI – AI for Good</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#020617;color:white}
+header{background:#0f172a;padding:15px;text-align:center}
+.logo{width:80px;border-radius:50%}
+.container{padding:20px;max-width:900px;margin:auto}
+input,textarea,button{width:100%;padding:10px;margin:5px 0}
+button{background:#2563eb;color:white;border:none;border-radius:5px}
+.chat{background:#1e293b;padding:15px;border-radius:10px;min-height:120px}
+.msg-user{color:#93c5fd}
+.msg-ai{color:#a7f3d0}
+.hero-img{width:120px;border-radius:10px;margin-top:10px}
+.icons span{cursor:pointer;margin-right:15px}
+#admin,#quiz{display:none;background:#020617;padding:15px;border:1px solid #334155}
+#logs{position:fixed;right:0;top:0;width:220px;height:100%;background:black;font-size:12px;overflow:auto;padding:5px}
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Coat_of_arms_of_Rwanda.svg" class="logo">
+<h2>Intwari AI</h2>
+<p>AI for Good • Rwandan Heroes Intelligence</p>
+</header>
+
+<div class="container">
+<select id="lang">
+<option value="en">English</option>
+<option value="rw">Kinyarwanda</option>
+</select>
+
+<input id="q" placeholder="Ask about a Rwandan hero...">
+<button onclick="ask()">Ask Intwari AI</button>
+
+<div class="chat" id="chat"></div>
+
+<div class="icons">
+<span onclick="toggleQuiz()">🧠 Quiz</span>
+<span onclick="toggleAdmin()">⚙️ Admin</span>
+</div>
+
+<div id="quiz">
+<h3>Hero Quiz</h3>
+<p id="quizQ"></p>
+<button onclick="quizAnswer(true)">Yes</button>
+<button onclick="quizAnswer(false)">No</button>
+</div>
+
+<div id="admin">
+<h3>Admin Panel</h3>
+<p>Administrator: <b>manzipros@gmail.com</b></p>
+<input id="hname" placeholder="Hero Name">
+<textarea id="hen" placeholder="English description"></textarea>
+<textarea id="hrw" placeholder="Ibisobanuro mu Kinyarwanda"></textarea>
+<input type="file" id="himg">
+<button onclick="addHero()">Add Hero</button>
+</div>
+</div>
+
+<div id="logs"></div>
+
+<script>
+let heroes=[
+ {name:"Paul Kagame",en:"President of Rwanda, key leader in rebuilding Rwanda.",rw:"Perezida w'u Rwanda wagize uruhare rukomeye mu kubaka igihugu.",img:"https://upload.wikimedia.org/wikipedia/commons/6/6e/Paul_Kagame_2023.jpg",keys:["president","leader","kagame"]},
+ {name:"Agathe Uwilingiyimana",en:"Former Prime Minister and national heroine.",rw:"Minisitiri w’Intebe wahozeho, intwari y’igihugu.",img:"https://upload.wikimedia.org/wikipedia/commons/4/49/Agathe_Uwilingiyimana.jpg",keys:["prime","minister","agathe"]}
+];
+
+function log(t){document.getElementById("logs").innerHTML+="<div>"+t+"</div>"}
+
+function addMsg(t,c){document.getElementById("chat").innerHTML+=`<div class="msg-${c}">${t}</div>`}
+
+async function ask(){
+ let q=document.getElementById("q").value.toLowerCase();
+ if(!q)return;
+ addMsg(q,"user");
+ log("User: "+q);
+
+ let h=heroes.find(x=>x.keys.some(k=>q.includes(k))||q.includes(x.name.toLowerCase()));
+ if(h){
+  let l=document.getElementById("lang").value;
+  addMsg(`<b>${h.name}</b><br>${l=="en"?h.en:h.rw}<br><img src="${h.img}" class="hero-img">`,"ai");
+  return;
+ }
+
+ log("Searching Wikipedia silently");
+ let r=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(q));
+ if(r.ok){
+  let d=await r.json();
+  addMsg(`<b>${d.title}</b><br>${d.extract}`,"ai");
+ }else{
+  addMsg(document.getElementById("lang").value=="en"?"No reliable info found.":"Nta makuru yizewe abonetse.","ai");
+ }
+}
+
+function toggleAdmin(){document.getElementById("admin").style.display=
+ document.getElementById("admin").style.display=="block"?"none":"block"}
+
+function addHero(){
+ let n=hname.value;
+ let en=hen.value;
+ let rw=hrw.value;
+ let f=himg.files[0];
+ let url=f?URL.createObjectURL(f):"";
+ heroes.push({name:n,en:en,rw:rw,img:url,keys:n.toLowerCase().split(" ")});
+ alert("Hero added");
+}
+
+let quizIndex=0;
+function toggleQuiz(){
+ quiz.style.display=quiz.style.display=="block"?"none":"block";
+ quizQ.innerText="Is Paul Kagame a Rwandan leader?";
+}
+function quizAnswer(a){
+ alert(a?"Correct!":"Try again");
+}
+</script>
+
+</body>
+</html>
